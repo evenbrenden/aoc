@@ -6,7 +6,7 @@ let
 
   f = { mkDerivation, base, lib, trifecta }:
       mkDerivation {
-        pname = "aoc-template";
+        pname = "aoc";
         version = "0.1.0.0";
         src = ./.;
         isLibrary = false;
