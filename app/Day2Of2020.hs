@@ -38,17 +38,15 @@ parse = handleResult . parsePasswords
 count' :: Char -> String -> Int
 count' char' = length . filter (== char')
 
-isValid :: Password -> Bool
-isValid p =
-    let mandatory' = mandatory p
-        start = fst . range $ p
+isValidPart1 :: Password -> Bool
+isValidPart1 p =
+    let start = fst . range $ p
         end = snd . range $ p
-        password' = password p
-        count'' = count' mandatory' password'
+        count'' = count' (mandatory p) (password p)
     in count'' >= start && count'' <= end
 
 part1 :: [Password] -> Int
-part1 = length . filter isValid
+part1 = length . filter isValidPart1
 
 solve :: IO ()
 solve = do
