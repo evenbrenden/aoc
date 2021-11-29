@@ -1,5 +1,3 @@
--- https://adventofcode.com/2020/day/1
-
 module Day1Of2020 where
 
 import Control.Monad
