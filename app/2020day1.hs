@@ -1,7 +1,7 @@
 module Main where
 
+import Common
 import Control.Monad
-import System.IO
 import Text.Trifecta
 
 parseInt :: Parser Int
@@ -15,9 +15,6 @@ parseInts = do
 
 parseInput :: String -> [Int]
 parseInput = handleResult . parseString parseInts mempty
-
-handleResult (Success is) = is
-handleResult (Failure f) = error $ show f
 
 part1 :: [Int] -> Int
 part1 ints = head $ do
@@ -36,7 +33,6 @@ part2 ints = head $ do
 
 main :: IO ()
 main = do
-    handle <- openFile "app/Day1Of2020.txt" ReadMode
-    contents <- hGetContents handle
-    print $ part1 . parseInput $ contents
-    print $ part2 . parseInput $ contents
+    input <- load "app/2020day1.txt"
+    print $ part1 . parseInput $ input
+    print $ part2 . parseInput $ input

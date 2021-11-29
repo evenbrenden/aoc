@@ -9,8 +9,9 @@ let
         pname = "aoc";
         version = "0.1.0.0";
         src = ./.;
-        isLibrary = false;
+        isLibrary = true;
         isExecutable = true;
+        libraryHaskellDepends = [ base trifecta ];
         executableHaskellDepends = [ base trifecta ];
         description = "https://adventofcode.com";
         license = lib.licenses.mit;

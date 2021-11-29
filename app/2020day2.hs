@@ -1,6 +1,6 @@
 module Main where
 
-import System.IO
+import Common
 import Text.Trifecta
 
 data Password = Password
@@ -35,9 +35,6 @@ parsePasswords = do
 parseInput :: String -> [Password]
 parseInput = handleResult . parseString parsePasswords mempty
 
-handleResult (Success is) = is
-handleResult (Failure f) = error $ show f
-
 charCount :: Char -> String -> Int
 charCount character = length . filter (== character)
 
@@ -63,7 +60,6 @@ part2 = length . filter isValidPart2
 
 main :: IO ()
 main = do
-    handle <- openFile "app/Day2Of2020.txt" ReadMode
-    contents <- hGetContents handle
-    print $ part1 . parseInput $ contents
-    print $ part2 . parseInput $ contents
+    input <- load "app/2020day2.txt"
+    print $ part1 . parseInput $ input
+    print $ part2 . parseInput $ input
