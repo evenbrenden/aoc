@@ -1,6 +1,5 @@
 module Day2Of2020 where
 
-import Control.Monad
 import System.IO
 import Text.Trifecta
 
