@@ -12,8 +12,8 @@ let
         isLibrary = false;
         isExecutable = true;
         executableHaskellDepends = [ base trifecta ];
-        license = "unknown";
-        hydraPlatforms = lib.platforms.none;
+        description = "https://adventofcode.com";
+        license = lib.licenses.mit;
       };
 
   haskellPackages = if compiler == "default"
