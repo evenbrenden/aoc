@@ -5,51 +5,62 @@ import System.IO
 import Text.Trifecta
 
 data Password =
-    Password { range :: (Int, Int), mandatory :: Char, password :: String }
+    Password { indexes :: (Int, Int), character :: Char, password :: String }
     deriving Show
 
 parsePassword :: Parser Password
 parsePassword = do
-    start <- fromIntegral <$> integer
+    firstIndex <- fromIntegral <$> integer
     char '-'
-    end <- fromIntegral <$> integer
-    mandatory' <- anyChar
+    secondIndex <- fromIntegral <$> integer
+    character' <- anyChar
     char ':'
     space
     password' <- some $ noneOf "\n"
     char '\n'
-    return $ Password { range = (start, end), mandatory = mandatory', password = password' }
+    return $ Password { indexes = (firstIndex, secondIndex), character = character', password = password' }
 
-passwords:: Parser [Password]
-passwords = do
+parsePasswords:: Parser [Password]
+parsePasswords = do
     ps <- many parsePassword
     eof
     return ps
 
-parsePasswords :: String -> Result [Password]
-parsePasswords = parseString passwords mempty
+passwords :: String -> Result [Password]
+passwords = parseString parsePasswords mempty
 
 handleResult (Success is) = is
 handleResult (Failure f) = error $ show f
 
 parse :: String -> [Password]
-parse = handleResult . parsePasswords
+parse = handleResult . passwords
 
-count' :: Char -> String -> Int
-count' char' = length . filter (== char')
+charCount :: Char -> String -> Int
+charCount character = length . filter (== character)
 
 isValidPart1 :: Password -> Bool
 isValidPart1 p =
-    let start = fst . range $ p
-        end = snd . range $ p
-        count'' = count' (mandatory p) (password p)
-    in count'' >= start && count'' <= end
+    let start = (fst . indexes) p
+        end = (snd . indexes) p
+        numHits = charCount (character p) (password p)
+    in numHits >= start && numHits <= end
 
 part1 :: [Password] -> Int
 part1 = length . filter isValidPart1
+
+isValidPart2 :: Password -> Bool
+isValidPart2 p =
+    let firstIndex = ((fst . indexes) p) - 1
+        secondIndex = ((snd . indexes) p) - 1
+    in (password p !! firstIndex == character p && password p !! secondIndex /= character p) ||
+       (password p !! firstIndex /= character p && password p !! secondIndex == character p)
+
+part2 :: [Password] -> Int
+part2 = length . filter isValidPart2
 
 solve :: IO ()
 solve = do
     handle <- openFile "app/Day2Of2020.txt" ReadMode
     contents <- hGetContents handle
     print $ part1 . parse $ contents
+    print $ part2 . parse $ contents
