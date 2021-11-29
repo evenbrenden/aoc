@@ -2,7 +2,7 @@
 
 module Main where
 
-import Day1Of2020
+import Day2Of2020
 
 main :: IO ()
 main = solve
