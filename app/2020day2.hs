@@ -32,34 +32,31 @@ parsePasswords = do
     eof
     return ps
 
-parseInput :: String -> [Password]
-parseInput = handleResult . parseString parsePasswords mempty
-
 charCount :: Char -> String -> Int
 charCount character = length . filter (== character)
 
-isValidPart1 :: Password -> Bool
-isValidPart1 p =
+unsafeIsValidPart1 :: Password -> Bool
+unsafeIsValidPart1 p =
     let start   = firstIndex p
         end     = secondIndex p
         numHits = charCount (character p) (password p)
     in  numHits >= start && numHits <= end
 
 part1 :: [Password] -> Int
-part1 = length . filter isValidPart1
+part1 = length . filter unsafeIsValidPart1
 
-isValidPart2 :: Password -> Bool
-isValidPart2 p =
+unsafeIsValidPart2 :: Password -> Bool
+unsafeIsValidPart2 p =
     let firstIndex'  = (firstIndex p) - 1
         secondIndex' = (secondIndex p) - 1
     in  (password p !! firstIndex' == character p && password p !! secondIndex' /= character p) ||
         (password p !! firstIndex' /= character p && password p !! secondIndex' == character p)
 
 part2 :: [Password] -> Int
-part2 = length . filter isValidPart2
+part2 = length . filter unsafeIsValidPart2
 
 main :: IO ()
 main = do
-    input <- load "app/2020day2.txt"
-    print $ part1 . parseInput $ input
-    print $ part2 . parseInput $ input
+    input <- get "app/2020day2.txt"
+    put parsePasswords part1 input
+    put parsePasswords part2 input

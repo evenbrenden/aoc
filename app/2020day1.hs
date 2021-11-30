@@ -13,18 +13,15 @@ parseInts = do
     eof
     return is
 
-parseInput :: String -> [Int]
-parseInput = handleResult . parseString parseInts mempty
-
-part1 :: [Int] -> Int
-part1 ints = head $ do
+unsafePart1 :: [Int] -> Int
+unsafePart1 ints = head $ do
     x <- ints
     y <- ints
     guard $ x + y == 2020
     return $ x * y
 
-part2 :: [Int] -> Int
-part2 ints = head $ do
+unsafePart2 :: [Int] -> Int
+unsafePart2 ints = head $ do
     x <- ints
     y <- ints
     z <- ints
@@ -33,6 +30,6 @@ part2 ints = head $ do
 
 main :: IO ()
 main = do
-    input <- load "app/2020day1.txt"
-    print $ part1 . parseInput $ input
-    print $ part2 . parseInput $ input
+    input <- get "app/2020day1.txt"
+    put parseInts unsafePart1 input
+    put parseInts unsafePart2 input
