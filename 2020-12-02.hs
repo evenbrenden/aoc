@@ -1,6 +1,10 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -i "ghcid -c 'ghci -Wall' -T main"
+
 module Main where
 
 import Common
+import Control.Monad
 import Text.Trifecta
 
 data Password = Password
@@ -13,13 +17,13 @@ data Password = Password
 parsePassword :: Parser Password
 parsePassword = do
     firstIndex' <- fromIntegral <$> integer
-    char '-'
+    void $ char '-'
     secondIndex' <- fromIntegral <$> integer
     character' <- anyChar
-    char ':'
-    space
+    void $ char ':'
+    void $ space
     password' <- some $ noneOf "\n"
-    char '\n'
+    void $ char '\n'
     return $ Password
         { firstIndex  = firstIndex'
         , secondIndex = secondIndex'
@@ -33,7 +37,7 @@ parsePasswords = do
     return ps
 
 charCount :: Char -> String -> Int
-charCount character = length . filter (== character)
+charCount character' = length . filter (== character')
 
 unsafeIsValidPart1 :: Password -> Bool
 unsafeIsValidPart1 p =
@@ -57,6 +61,6 @@ part2 = length . filter unsafeIsValidPart2
 
 main :: IO ()
 main = do
-    input <- get "app/2020day2.txt"
+    input <- get "2020-12-02.txt"
     put parsePasswords part1 input
     put parsePasswords part2 input

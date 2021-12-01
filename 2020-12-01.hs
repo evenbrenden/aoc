@@ -1,3 +1,6 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -i "ghcid -c 'ghci -Wall' -T main"
+
 module Main where
 
 import Common
@@ -30,6 +33,6 @@ unsafePart2 ints = head $ do
 
 main :: IO ()
 main = do
-    input <- get "app/2020day1.txt"
+    input <- get "2020-12-01.txt"
     put parseInts unsafePart1 input
     put parseInts unsafePart2 input

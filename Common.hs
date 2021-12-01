@@ -15,7 +15,7 @@ printResult :: Show a => Result a -> IO ()
 printResult result =
     case result of
         Success output -> print output
-        Failure error -> print error
+        Failure error' -> print error'
 
 put :: Show a
     => Parser b
