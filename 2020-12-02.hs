@@ -1,10 +1,9 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -i "ghcid -c 'ghci -Wall' -T main"
+#! nix-shell -i "ghcid -c 'ghci -Wall -Wno-unused-do-bind' -T main"
 
 module Main where
 
 import Common
-import Control.Monad
 import Text.Trifecta
 
 data Password = Password
@@ -17,13 +16,13 @@ data Password = Password
 parsePassword :: Parser Password
 parsePassword = do
     firstIndex' <- fromIntegral <$> integer
-    void $ char '-'
+    char '-'
     secondIndex' <- fromIntegral <$> integer
     character' <- anyChar
-    void $ char ':'
-    void $ space
+    char ':'
+    space
     password' <- some $ noneOf "\n"
-    void $ char '\n'
+    char '\n'
     return $ Password
         { firstIndex  = firstIndex'
         , secondIndex = secondIndex'

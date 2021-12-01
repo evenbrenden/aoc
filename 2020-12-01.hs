@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -i "ghcid -c 'ghci -Wall' -T main"
+#! nix-shell -i "ghcid -c 'ghci -Wall -Wno-unused-do-bind' -T main"
 
 module Main where
 
