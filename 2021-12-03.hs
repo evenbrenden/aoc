@@ -37,7 +37,7 @@ mostCommon :: [Bool] -> Bool
 mostCommon bools =
     let numTrues = length . filter (==True) $ bools
         numFalses = length . filter (==False) $ bools
-    in  numTrues > numFalses
+    in  numTrues >= numFalses
 
 pow2 :: Bool -> Int -> Int
 pow2 True = (^) 2
@@ -55,7 +55,37 @@ epsilon = fmap not . gamma
 part1 :: [[Bool]] -> Int
 part1 nums = (int . gamma) nums * (int . epsilon) nums
 
+notIf :: Bool -> (Bool -> Bool)
+notIf True = id
+notIf False = not
+
+ogrFilter :: [[Bool]] -> Int -> [[Bool]]
+ogrFilter nums _ | length nums == 1 = nums
+ogrFilter nums idx =
+    let cols  = transpose nums
+        most  = mostCommon $ cols !! idx
+        predi = notIf most . (!! idx)
+    in  ogrFilter (filter predi nums) (idx + 1)
+
+ogr :: [[Bool]] -> Int
+ogr nums = int . head $ ogrFilter nums 0
+
+co2Filter :: [[Bool]] -> Int -> [[Bool]]
+co2Filter nums _ | length nums == 1 = nums
+co2Filter nums idx =
+    let cols  = transpose nums
+        least = not . mostCommon $ cols !! idx
+        predi  = notIf least . (!! idx)
+    in  co2Filter (filter predi nums) (idx + 1)
+
+co2 :: [[Bool]] -> Int
+co2 nums = int . head $ co2Filter nums 0
+
+part2 :: [[Bool]] -> Int
+part2 nums = ogr nums * co2 nums
+
 main :: IO ()
 main = do
     input <- get "2021-12-03.txt"
     put parseNumbers part1 input
+    put parseNumbers part2 input
