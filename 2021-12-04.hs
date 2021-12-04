@@ -77,15 +77,17 @@ sumUnmarked board =
         sumUnmarkedRow = sumNumbers . unmarkedRow
     in  sum $ sumUnmarkedRow <$> board
 
-win :: (Int, Board, Bool) -> Bool
-win (_, _, w) = w
+won :: (Int, Board, Bool) -> Bool
+won (_, _, w) = w
+
+inform :: a -> Board -> (a, Board, Bool)
+inform call board = (call, board, check board)
 
 go :: [Int] -> [Board] -> (Int, Board, Bool)
 go (call:calls) boards =
-    let marked    = markBoards call boards
-        infos c x = (c, x, check x)
-        checked   = infos call <$> marked
-        wins      = filter win checked
+    let marked  = markBoards call boards
+        checked = inform call <$> marked
+        wins    = filter won checked
     in
         if length wins > 0 then
             head wins
@@ -107,7 +109,35 @@ part1 (calls, boards) =
         (call, board) = findWinner calls boards'
     in  score call board
 
+bored :: (Int, Board, Bool) -> Board
+bored (_, b, _) = b
+
+og :: [Int] -> [Board] -> [(Int, Board, Bool)] -> (Int, Board, Bool)
+og (call:calls) boards lastWins =
+    let marked   = markBoards call boards
+        checked  = inform call <$> marked
+        nextWins = filter won checked
+        stillNot = bored <$> filter (not . won) checked
+    in
+        if length nextWins > 0 then
+            og calls stillNot nextWins
+        else
+            og calls stillNot lastWins
+og [] _ wins = last wins
+
+findLastWinner :: [Int] -> [Board] -> (Int, Board)
+findLastWinner calls boards =
+    let (call, board, _) = og calls boards []
+    in  (call, board)
+
+part2 :: ([Int], [[[Int]]]) -> Int
+part2 (calls, boards) =
+    let boards' = initBoard <$> boards
+        (call, board) = findLastWinner calls boards'
+    in  score call board
+
 main :: IO ()
 main = do
     input <- get "2021-12-04.txt"
     put parseInput part1 input
+    put parseInput part2 input
