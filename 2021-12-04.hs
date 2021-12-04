@@ -77,10 +77,10 @@ sumUnmarked board =
         sumUnmarkedRow = sumNumbers . unmarkedRow
     in  sum $ sumUnmarkedRow <$> board
 
-win :: (Int, [[Number]], Bool) -> Bool
+win :: (Int, Board, Bool) -> Bool
 win (_, _, w) = w
 
-go :: [Int] -> [Board] -> (Int, [[Number]], Bool)
+go :: [Int] -> [Board] -> (Int, Board, Bool)
 go (call:calls) boards =
     let marked    = markBoards call boards
         infos c x = (c, x, check x)
