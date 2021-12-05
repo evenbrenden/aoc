@@ -9,22 +9,27 @@ import Text.Trifecta
 
 data Number = Number Int Bool deriving Show
 type Board = [[Number]]
+type Call = Int
+type Calls = [Int]
 
-parseCalls :: Parser [Int]
+parseCalls :: Parser Calls
 parseCalls = do
     calls <- integer `sepBy` (char ',')
     return $ fromInteger <$> calls
 
-parseRow :: Parser [Int]
+unMarked :: Bool
+unMarked = False
+
+parseRow :: Parser [Number]
 parseRow = do
     a <- integer
     b <- integer
     c <- integer
     d <- integer
     e <- integer
-    return $ fromIntegral <$> [a, b, c, d, e]
+    return $ flip Number unMarked . fromIntegral <$> [a, b, c, d, e]
 
-parseBoard :: Parser [[Int]]
+parseBoard :: Parser Board
 parseBoard = do
     a <- parseRow
     b <- parseRow
@@ -33,86 +38,81 @@ parseBoard = do
     e <- parseRow
     return [a, b, c, d, e]
 
-parseInput :: Parser ([Int], [[[Int]]])
+parseInput :: Parser (Calls, [Board])
 parseInput = do
     calls <- parseCalls
     boards <- many parseBoard
     eof
     return (calls, boards)
 
-initBoard :: [[Int]] -> Board
-initBoard = fmap . fmap $ flip Number $ False
+markNumber :: Call -> Number -> Number
+markNumber call (Number n m) = Number n (n == call || m)
 
-markNumber :: Int -> Number -> Number
-markNumber x (Number n m) = Number n (n == x || m)
+markBoard :: Call -> Board -> Board
+markBoard call board =
+    let markRow row = markNumber call <$> row
+    in  markRow <$> board
 
-markBoard :: Int -> Board -> Board
-markBoard x b =
-    let markRow row = markNumber x <$> row
-    in  markRow <$> b
-
-markBoards :: Int -> [Board] -> [Board]
-markBoards x = fmap $ markBoard x
+markBoards :: Call -> [Board] -> [Board]
+markBoards call = fmap $ markBoard call
 
 isMarked :: Number -> Bool
 isMarked (Number _ b) = b
 
 checkLine :: [Number] -> Bool
-checkLine l = length (filter isMarked l) == 5
+checkLine = (== 5) . length . filter isMarked
+
+checkLines :: Board -> Bool
+checkLines = or . fmap checkLine
 
 check :: Board -> Bool
 check rows =
     let columns = transpose rows
-        checkLines xs = any id (fmap checkLine xs)
     in  checkLines rows || checkLines columns
 
-sumNumbers :: [Number] -> Int
-sumNumbers (Number n _:ns) = n + sumNumbers ns
-sumNumbers [] = 0
+inform :: Call -> Board -> ((Call, Board), Bool)
+inform call board = ((call, board), check board)
 
-sumBoard :: Board -> Int
-sumBoard board =
-    let isUnmarked (Number _ m) = not m
-        unmarkedRow = filter isUnmarked
-        sumBoardRow = sumNumbers . unmarkedRow
-    in  sum $ sumBoardRow <$> board
+won :: ((Call, Board), Bool) -> Bool
+won = snd
 
-won :: (Int, Board, Bool) -> Bool
-won (_, _, w) = w
+noWon :: ((Call, Board), Bool) -> (Call, Board)
+noWon = fst
 
-inform :: Int -> Board -> (Int, Board, Bool)
-inform call board = (call, board, check board)
+bored :: ((Call, Board), Bool) -> Board
+bored = snd . fst
 
-removeWon :: (Int, Board, Bool) -> (Int, Board)
-removeWon (c, b, _) = (c, b)
-
-findWinners :: [Int] -> [Board] -> [(Int, Board)]
-findWinners calls boards =
-    let go (call:calls') boards' wins =
-            let marked   = markBoards call boards'
-                checked  = inform call <$> marked
-                nextWins = filter won checked
-                stillNot = bored <$> filter (not . won) checked
+winners :: Calls -> [Board] -> [(Call, Board)]
+winners allCalls allBoards =
+    let go (call:calls) notYets wins =
+            let marked    = markBoards call notYets
+                checked   = inform call <$> marked
+                newWins   = noWon <$> filter won checked
+                stillNots = bored <$> filter (not . won) checked
             in
-                go calls' stillNot (wins <> nextWins)
+                go calls stillNots $ wins <> newWins
         go [] _ wins = wins
-    in removeWon <$> go calls boards []
+    in  go allCalls allBoards []
+
+number :: Number -> Int
+number (Number n _) = n
+
+sumUnmarked :: Board -> Int
+sumUnmarked =
+    let unmarkedRow    = filter $ not . isMarked
+        sumUnmarkedRow = sum . fmap number . unmarkedRow
+    in  sum . fmap sumUnmarkedRow
 
 score :: Int -> Board -> Int
-score x b = x * sumBoard b
+score call board = call * sumUnmarked board
 
-part1 :: ([Int], [[[Int]]]) -> Int
+part1 :: (Calls, [Board]) -> Int
 part1 (calls, boards) =
-    let boards' = initBoard <$> boards
-    in  uncurry score $ head $ findWinners calls boards'
+    uncurry score $ head $ winners calls boards
 
-bored :: (Int, Board, Bool) -> Board
-bored (_, b, _) = b
-
-part2 :: ([Int], [[[Int]]]) -> Int
+part2 :: (Calls, [Board]) -> Int
 part2 (calls, boards) =
-    let boards' = initBoard <$> boards
-    in uncurry score $ last $ findWinners calls boards'
+    uncurry score $ last $ winners calls boards
 
 main :: IO ()
 main = do
