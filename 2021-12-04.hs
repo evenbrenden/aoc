@@ -12,6 +12,7 @@ data Number = Number Int Mark deriving Show
 type Board = [[Number]]
 type Call = Int
 type Calls = [Call]
+type Bingo = Bool
 
 parseCalls :: Parser Calls
 parseCalls = do
@@ -60,39 +61,39 @@ markBoards = fmap . markBoard
 isMarked :: Number -> Mark
 isMarked (Number _ b) = b
 
-allMarked :: [Number] -> Bool
+allMarked :: [Number] -> Bingo
 allMarked = (== 5) . length . filter isMarked
 
-anyLine :: Board -> Bool
+anyLine :: Board -> Bingo
 anyLine = or . fmap allMarked
 
-check :: Board -> Bool
-check rows =
+bingo :: Board -> Bingo
+bingo rows =
     let columns = transpose rows
     in  anyLine rows || anyLine columns
 
-inform :: Call -> Board -> ((Call, Board), Bool)
-inform call board = ((call, board), check board)
+check :: Call -> Board -> ((Call, Board), Bingo)
+check call board = ((call, board), bingo board)
 
-won :: ((Call, Board), Bool) -> Bool
-won = snd
+hasBingo :: ((Call, Board), Bingo) -> Bingo
+hasBingo = snd
 
-noWon :: ((Call, Board), Bool) -> (Call, Board)
-noWon = fst
+stripBingo :: ((Call, Board), Bingo) -> (Call, Board)
+stripBingo = fst
 
-bored :: ((Call, Board), Bool) -> Board
+bored :: ((Call, Board), Bingo) -> Board
 bored = snd . fst
 
-winners :: Calls -> [Board] -> [(Call, Board)]
-winners allCalls allBoards =
-    let go (call:calls) notYets wins =
+bingos :: Calls -> [Board] -> [(Call, Board)]
+bingos allCalls allBoards =
+    let go (call:calls) notYets hasBingos =
             let marked    = markBoards call notYets
-                checked   = inform call <$> marked
-                newWins   = noWon <$> filter won checked
-                stillNots = bored <$> filter (not . won) checked
+                checked   = check call <$> marked
+                newBingos = stripBingo <$> filter hasBingo checked
+                stillNots = bored <$> filter (not . hasBingo) checked
             in
-                go calls stillNots $ wins <> newWins
-        go [] _ wins = wins
+                go calls stillNots $ hasBingos <> newBingos
+        go [] _ hasBingos = hasBingos
     in  go allCalls allBoards []
 
 number :: Number -> Int
@@ -109,11 +110,11 @@ score call board = call * sumUnmarked board
 
 part1 :: (Calls, [Board]) -> Int
 part1 (calls, boards) =
-    uncurry score $ head $ winners calls boards
+    uncurry score $ head $ bingos calls boards
 
 part2 :: (Calls, [Board]) -> Int
 part2 (calls, boards) =
-    uncurry score $ last $ winners calls boards
+    uncurry score $ last $ bingos calls boards
 
 main :: IO ()
 main = do
