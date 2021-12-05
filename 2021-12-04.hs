@@ -7,17 +7,18 @@ import Common
 import Data.List
 import Text.Trifecta
 
-data Number = Number Int Bool deriving Show
+type Mark = Bool
+data Number = Number Int Mark deriving Show
 type Board = [[Number]]
 type Call = Int
-type Calls = [Int]
+type Calls = [Call]
 
 parseCalls :: Parser Calls
 parseCalls = do
     calls <- integer `sepBy` (char ',')
     return $ fromInteger <$> calls
 
-unMarked :: Bool
+unMarked :: Mark
 unMarked = False
 
 parseRow :: Parser [Number]
@@ -54,21 +55,21 @@ markBoard call board =
     in  markRow <$> board
 
 markBoards :: Call -> [Board] -> [Board]
-markBoards call = fmap $ markBoard call
+markBoards = fmap . markBoard
 
-isMarked :: Number -> Bool
+isMarked :: Number -> Mark
 isMarked (Number _ b) = b
 
-checkLine :: [Number] -> Bool
-checkLine = (== 5) . length . filter isMarked
+allMarked :: [Number] -> Bool
+allMarked = (== 5) . length . filter isMarked
 
-checkLines :: Board -> Bool
-checkLines = or . fmap checkLine
+anyLine :: Board -> Bool
+anyLine = or . fmap allMarked
 
 check :: Board -> Bool
 check rows =
     let columns = transpose rows
-    in  checkLines rows || checkLines columns
+    in  anyLine rows || anyLine columns
 
 inform :: Call -> Board -> ((Call, Board), Bool)
 inform call board = ((call, board), check board)
