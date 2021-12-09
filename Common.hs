@@ -1,12 +1,9 @@
 module Common (get, put) where
 
-import System.IO
 import Text.Trifecta
 
 get :: FilePath -> IO String
-get path = do
-    handle <- openFile path ReadMode
-    hGetContents handle
+get = readFile
 
 parseEntireString :: Parser a -> String -> Result a
 parseEntireString parser input = parseString parser mempty input
